@@ -142,6 +142,10 @@ static void rain_sensor_iteration(void)
     handle_rain();
 }
 
+uint32_t hazard_timer = 0;
+bool hazard_on = false;
+bool hazard_active = false;
+
 void handle_rain(){
     if(indicator_state != 0){
         // Indicators are on, so do not enable hazard lights.
@@ -150,14 +154,24 @@ void handle_rain(){
 
     tx_buffer1[0]=0x04;
     if(raining){
+        hazard_active = true;
         // Turn on hazard lights (assuming 0x01 and 0x02 are left/right respectively)
         tx_buffer1[1]=0x01;
         app_can_send(0x305,tx_buffer1,2);
         tx_buffer1[1]=0x02;
+
+        hazard_timer++;
+        if(hazard_timer == 2){
+            tx_buffer1[1]=0x00;
+            hazard_timer = 0;
+            hazard_on = !hazard_on;
+        }
     }
     else{
+        hazard_active = false;
         // Turn off hazard lights
         tx_buffer1[1]=0x00;
+        hazard_timer = 0;
     }
     app_can_send(0x305,tx_buffer1,2);
 }
