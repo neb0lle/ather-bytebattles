@@ -119,40 +119,34 @@ void process_indicator_state()
     static bool indicator_on = false;
     static uint32_t indicator_timer = 0;  
     static bool indicator_active = false; 
-    static uint8_t previous_indicator_state = 0x00;  // Store the previous state (left/right)
+    static uint8_t previous_indicator_state = 0x00;  
 
-    // If indicator state is center (0x00) but previously was left or right, continue blinking
     if (indicator_state == 0x00 && previous_indicator_state != 0x00)
     {
-        indicator_active = true;  // Continue blinking even if the state is center
+        indicator_active = true;  
     }
 
-    // If indicator was left or right, keep it active for blinking
     if (indicator_state != 0x00)
     {
-        previous_indicator_state = indicator_state;  // Remember the last valid state (left or right)
-        indicator_active = true;  // Set blinking active
+        previous_indicator_state = indicator_state;  
+        indicator_active = true;  
     }
 
-    // Update the timer every 100ms if the indicator is active (blinking)
     if (indicator_active)
     {
         indicator_timer++;
 
-        // If 300ms passed (3 * 100ms = 300ms), toggle the indicator state
         if (indicator_timer >= 3)
         {
-            indicator_timer = 0;  // Reset the timer
-            indicator_on = !indicator_on;  // Toggle the indicator on/off
+            indicator_timer = 0;  
+            indicator_on = !indicator_on;  
         }
     }
 
-    // Prepare the CAN message
     tx_buffer[0] = 0x04;
 
     if (indicator_on)
     {
-        // Send ON signal based on the direction (left or right)
         switch (previous_indicator_state)
         {
         case 0x01:
@@ -167,17 +161,14 @@ void process_indicator_state()
     }
     else
     {
-        // Send OFF signal
         tx_buffer[1] = 0x00; // OFF
     }
 
-    // Send the CAN message
     app_can_send(0x305, tx_buffer, 2);
 
-    // If indicator has returned to center (0x00), stop blinking after flickering
     if (indicator_state == 0x00)
     {
-        indicator_active = false;  // Stop the blinking once the center state is confirmed
+        indicator_active = false;  
     }
 }
 
@@ -311,16 +302,6 @@ void app_can_iteration()
         can_bus_off = false;
     }
 
-    // if (msg_received)
-    // {
-    //     msg_received = false;
-
-    //     process_horn_state();
-    //     process_brake_state();
-    //     process_indicator_state();
-    //     handle_start_button_press();
-    //     update_vehicle_speed();
-    // }
 
     if (msg_received)
     {
