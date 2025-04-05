@@ -32,7 +32,7 @@ void process_horn_state() {
 
 void process_brake_state() {
     tx_buffer[0] = 0x03;
-    tx_buffer[1] = brake_state ? 0x02 : 0x01;
+    tx_buffer[1] = brake_state ? 0x02 : 0x00;
     app_can_send(0x305, tx_buffer, 2);
 }
 
