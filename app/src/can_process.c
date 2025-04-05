@@ -145,9 +145,9 @@ void process_hold_state() {
 
     // When vehicle is stopped and manual brake was requested
     if (manual_brake_requested && vehicle_speed == 0 && brake_state) {
-        if (pitch > 15) {
+        if (pitch > 10) {
             riding_mode = 3; // HoldUp
-        } else if (pitch < -15) {
+        } else if (pitch < -10) {
             riding_mode = 4; // HoldDown
         }
 
