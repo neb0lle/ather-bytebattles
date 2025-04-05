@@ -134,7 +134,7 @@ void process_hold_state() {
     static bool manual_brake_requested = false;
     static uint8_t previous_riding_mode = 0;
 
-    // Allow hold request only from Forward or Reverse
+    // Start hold sequence only in Forward or Reverse
     if ((riding_mode == 1 || riding_mode == 2) && brake_state && !hold_active) {
         if (pitch > 10 || pitch < -10) {
             vehicle_speed = 0;
@@ -143,21 +143,20 @@ void process_hold_state() {
         }
     }
 
-    // If manual brake is requested and vehicle is fully stopped
-    if (manual_brake_requested && vehicle_speed == 0 && brake_state) {
+    // Once vehicle is stopped with brake
+    if (manual_brake_requested && vehicle_speed == 0) {
         if (pitch > 10) {
-            riding_mode = 3;
+            riding_mode = 3; // HoldUp
         } else if (pitch < -10) {
-            riding_mode = 4;
+            riding_mode = 4; // HoldDown
         }
 
         hold_active = true;
         manual_brake_requested = false;
     }
 
-    // Exit condition: brake released or throttle applied
-    if (hold_active && (!brake_state || throttle > 0)) {
-        // Only restore if original mode was Forward or Reverse
+    // Exit only on throttle input
+    if (hold_active && throttle > 0) {
         if (previous_riding_mode == 1 || previous_riding_mode == 2) {
             riding_mode = previous_riding_mode;
         } else {
@@ -167,14 +166,14 @@ void process_hold_state() {
         hold_active = false;
     }
 
-    // Fail-safe: prevent entering hold from Neutral
+    // Failsafe: If riding mode is Hold but came from Neutral, revert
     if ((riding_mode == 3 || riding_mode == 4) && previous_riding_mode == 0) {
-        riding_mode = 0; // Reset to Neutral
+        riding_mode = 0;
         hold_active = false;
         manual_brake_requested = false;
     }
 
-    // Transmit updated state
+    // Send updated state
     tx306_buffer[0] = riding_mode;
     tx306_buffer[1] = vehicle_speed;
     app_can_send(0x306, tx306_buffer, 2);
