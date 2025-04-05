@@ -19,6 +19,8 @@ static void ir_sensor_iteration(void);
 static void rain_sensor_iteration(void);
 volatile bool temp1;
 volatile bool temp2;
+int8_t tx_buffer1[8] = {0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA};
+
 
 /* Interrupt callback funtion for GPIO */
 static void gpio_callback(asdk_mcu_pin_t mcu_pin, uint32_t pin_state)
@@ -130,13 +132,28 @@ static void ir_sensor_iteration(void)
 
     temp1 = read_IR1;
     temp2 = read_IR2;
-    
 
 
-    if (app_gpio_get_pin_state(IR1_SENSE) == false) {
-        /* IR detected */
-    } else {
-        /* IR not detected */
+
+    if ((temp1 == true)&&(temp2==true)) {
+        tx_buffer1[0]=0x05;
+        tx_buffer1[1]=0x00;
+        app_can_send(0x305,tx_buffer1,2);
+   
+    //turn left
+    } else if((temp1==false)&&(temp2==true)){
+
+        tx_buffer1[0]=0x05;
+        tx_buffer1[1]=0xFF;
+        app_can_send(0x305,tx_buffer1,2);
+
+    //turn right
+    } else if((temp1==true)&&(temp2==false)){
+         
+        tx_buffer1[0]=0x05;
+        tx_buffer1[1]=0x01;
+        app_can_send(0x305,tx_buffer1,2);
+
     }
 
     
