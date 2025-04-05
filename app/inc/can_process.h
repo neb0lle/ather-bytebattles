@@ -10,6 +10,7 @@ void process_brake_state(void);
 void process_indicator_state(void);
 void handle_start_button_press(void);
 void update_vehicle_speed(void);
+void process_hold_state(void);
 
 #ifdef __cplusplus
 }

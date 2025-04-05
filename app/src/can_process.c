@@ -5,12 +5,18 @@
 extern volatile bool horn_state;
 extern volatile bool brake_state;
 extern volatile uint8_t indicator_state;
-extern volatile uint8_t riding_mode;
+extern volatile uint8_t riding_mode; // module to vehicle 0
 extern volatile int8_t throttle;
 extern volatile uint8_t vehicle_speed;
 extern volatile bool sidestand_engaged;
 extern volatile bool start_button;
 extern volatile bool prev_start_button;
+
+extern volatile uint8_t riding_mode_r; // reading from vehicle to module
+extern volatile uint8_t vehicle_speed_r;
+extern volatile int16_t roll;
+extern volatile int16_t pitch;
+extern volatile int16_t yaw;
 
 static uint8_t tx_buffer[8];
 static uint8_t tx306_buffer[8];
@@ -122,3 +128,5 @@ void update_vehicle_speed() {
 
     app_can_send(0x306, tx306_buffer, 2);
 }
+
+void process_hold_state() {}

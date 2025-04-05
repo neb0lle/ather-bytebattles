@@ -29,6 +29,12 @@ volatile bool start_button = 0;
 volatile bool prev_start_button = 0;
 volatile bool sidestand_engaged = false;
 
+volatile uint8_t riding_mode_r = 0;
+volatile uint8_t vehicle_speed_r = 0;
+volatile int16_t roll = 0;
+volatile int16_t pitch = 0;
+volatile int16_t yaw = 0;
+
 uint8_t tx_buffer[8] = {0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA};
 uint8_t tx306_buffer[8] = {0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA};
 uint8_t rx_buffer[8] = {0};
@@ -76,6 +82,13 @@ void __service_callback(uint8_t VEHICLE_CAN, asdk_can_event_t event,
             throttle = rx_msg.message[3];
             sidestand_engaged = rx_msg.message[4];
             start_button = rx_msg.message[5];
+        }
+        if (rx_msg.can_id == 0x301) {
+            riding_mode_r = rx_msg.message[0];
+            vehicle_speed_r = rx_msg.message[1];
+            roll = rx_msg.message[2];
+            pitch = rx_msg.message[4];
+            yaw = rx_msg.message[6];
         }
 
         break;
@@ -160,13 +173,12 @@ void app_can_iteration() {
         process_horn_state();
         process_brake_state();
         process_indicator_state();
+        process_hold_state();
 
         if (start_button && !prev_start_button) {
             handle_start_button_press();
         }
-
         prev_start_button = start_button;
-
         update_vehicle_speed();
     }
 
