@@ -129,11 +129,35 @@ static void ir_sensor_iteration(void) {
 static void light_sensor_iteration(void) {
 }
 
-static void rain_sensor_iteration(void) {
+static void rain_sensor_iteration(void)
+{
 
     /* Rain Sensing */
     if (app_gpio_get_pin_state(RAIN1_SENSE) == true) {
-
+        raining = true;
     } else {
+        raining=false;
     }
+
+    handle_rain();
+}
+
+void handle_rain(){
+    if(indicator_state != 0){
+        // Indicators are on, so do not enable hazard lights.
+        return;
+    }
+
+    tx_buffer1[0]=0x04;
+    if(raining){
+        // Turn on hazard lights (assuming 0x01 and 0x02 are left/right respectively)
+        tx_buffer1[1]=0x01;
+        app_can_send(0x305,tx_buffer1,2);
+        tx_buffer1[1]=0x02;
+    }
+    else{
+        // Turn off hazard lights
+        tx_buffer1[1]=0x00;
+    }
+    app_can_send(0x305,tx_buffer1,2);
 }
