@@ -18,6 +18,8 @@ volatile bool button_pressed = false;
 
 static void ir_sensor_iteration(void);
 static void rain_sensor_iteration(void);
+volatile bool temp1;
+volatile bool temp2;
 
 /* Interrupt callback function for GPIO */
 static void gpio_callback(asdk_mcu_pin_t mcu_pin, uint32_t pin_state) {
@@ -110,12 +112,24 @@ void app_gpio_toggle(asdk_mcu_pin_t pin) {
 
 static void ir_sensor_iteration(void) {
     /* IR Sensing */
+     
+    bool read_IR1=app_gpio_get_pin_state(IR1_SENSE);
+    bool read_IR2=app_gpio_get_pin_state(IR2_SENSE);
+
+    temp1 = read_IR1;
+    temp2 = read_IR2;
+
+
     if (app_gpio_get_pin_state(IR1_SENSE) == false) {
         /* IR detected */
     } else {
         /* IR not detected */
     }
+
+    
+    
 }
+
 
 static void rain_sensor_iteration(void) {
     /* Rain Sensing */

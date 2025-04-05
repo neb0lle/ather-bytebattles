@@ -4,7 +4,7 @@
         {
             "label": "$(check) build_m0",
             "type": "shell",
-            "command": "python3",
+            "command": "py",
             "args": [
                 "build.py",
                 "--platform",
@@ -36,7 +36,7 @@
         {
             "label": "$(check-all) rebuild_m0",
             "type": "shell",
-            "command": "python3",
+            "command": "py",
             "args": [
                 "build.py",
                 "--platform",
