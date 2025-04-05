@@ -15,7 +15,7 @@
 #define CAN_TX_PIN MCU_PIN_4
 #define CAN_RX_PIN MCU_PIN_5
 
-volatile uint32_t can_error_count = 0;
+volatile uint32_t can_error_count = 1;
 volatile uint32_t can_busoff_count = 0;
 volatile bool can_bus_off = false;
 
