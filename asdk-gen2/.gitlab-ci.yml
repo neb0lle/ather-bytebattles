@@ -1,0 +1,25 @@
+# The Docker image that will be used to build your app
+image: ruby:3.0
+pages:
+  tags:
+    - common-build-machine
+  stage: deploy
+  environment: production
+  script:
+    - sudo apt -y install doxygen graphviz
+    - python3 -m venv venv
+    - source ./venv/bin/activate
+    - pip3 install -r ./setup/requirements.txt
+    - rm -rf docs/doxygen_output docs/build
+    - doxygen docs/Doxyfile
+    - sphinx-multiversion docs docs/build
+    - mkdir .public
+    - cp -r ./docs/build/* .public
+    - rm -rf public
+    - mv .public public
+  only:
+    - tags
+  artifacts:
+    paths:
+      - public
+

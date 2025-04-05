@@ -1,0 +1,7 @@
+.vscode/
+*build*/
+doxygen_output/
+toolchain
+*.log
+/common/ 
+.DS_Store

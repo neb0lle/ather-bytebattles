@@ -1,0 +1,8 @@
+build/
+build_m0/
+build_m4/
+toolchain
+*.log
+.vscode/.cortex-debug.registers.state.json
+.vscode/settings.json
+asdk-gen2/platform/*

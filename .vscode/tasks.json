@@ -1,0 +1,94 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "$(check) build_m0",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "build.py",
+                "--platform",
+                "cyt2b75_m0plus",
+                "--build",
+                "build_m0",
+                "--type",
+                "debug",
+            ],
+            "detail": "Build application",
+            "problemMatcher": [],
+        },
+        // {
+        //     "label": "$(check) build_m4",
+        //     "type": "shell",
+        //     "command": "python3",
+        //     "args": [
+        //         "build.py",
+        //         "--platform",
+        //         "cyt2b75_m4",
+        //         "--build",
+        //         "build_m4",
+        //         "--type",
+        //         "debug",
+        //     ],
+        //     "detail": "Build application",
+        //     "problemMatcher": [],
+        // },
+        {
+            "label": "$(check-all) rebuild_m0",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "build.py",
+                "--platform",
+                "cyt2b75_m0plus",
+                "--build",
+                "build_m0",
+                "--type",
+                "debug",
+                "--clean"
+            ],
+            "detail": "Re-build application",
+            "problemMatcher": [],
+        },
+        {
+            "label": "$(play) download_m0",
+            "type": "shell",
+            "command": "${env:ASDK_OPENOCD_ROOT}/${env:ASDK_OPENOCD_VERSION}/bin/openocd",
+            "args": [
+                "-f",
+                "interface/kitprog3.cfg",
+                "-f",
+                "target/traveo2_1m_a0.cfg",
+                "-c",
+                "program ./build_m0/debug/bb_app_m0.elf verify exit",
+            ],
+            "detail": "Download application to target board",
+            "problemMatcher": [],
+            "dependsOn": ["$(check) build_m0"],
+        },
+        // {
+        //     "label": "$(play) download_m4",
+        //     "type": "shell",
+        //     "command": "${env:ASDK_OPENOCD_ROOT}/${env:ASDK_OPENOCD_VERSION}/bin/openocd",
+        //     "args": [
+        //         "-f",
+        //         "interface/kitprog3.cfg",
+        //         "-f",
+        //         "target/traveo2_1m_a0.cfg",
+        //         "-c",
+        //         "program ./build_m4/debug/bb_app_m4.elf verify reset exit",
+        //     ],
+        //     "detail": "Download application to target board",
+        //     "problemMatcher": [],
+        //     "dependsOn": ["$(check) build_m4"],
+        // },
+    ],
+    "inputs": [
+        {
+          "id": "launchDebug",
+          "type": "command",
+          "command": "workbench.action.debug.start",
+          "args": ["Launch Program"]
+        }
+      ]
+}

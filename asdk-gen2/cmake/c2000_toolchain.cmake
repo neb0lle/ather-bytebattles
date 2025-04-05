@@ -1,0 +1,23 @@
+SET(C2000_EABI_TOOLCHAIN_PATH ${CMAKE_CURRENT_SOURCE_DIR}/toolchain/ti-cgt-c2000_22.6.0.LTS)
+SET(C2000_EABI_TOOLCHAIN_BINARY_PATH ${C2000_EABI_TOOLCHAIN_PATH}/bin)
+
+
+# specify the cross compiler
+SET(CMAKE_COMPILER_PATH ${C2000_EABI_TOOLCHAIN_BINARY_PATH})
+SET(CMAKE_C_COMPILER   ${C2000_EABI_TOOLCHAIN_BINARY_PATH}/cl2000)
+SET(CMAKE_CXX_COMPILER ${C2000_EABI_TOOLCHAIN_BINARY_PATH}/cl2000)
+
+
+# where is the target environment
+SET(CMAKE_FIND_ROOT_PATH  C2000_EABI_TOOLCHAIN_BINARY_PATH)
+#set(CMAKE_EXE_LINKER_FLAGS " --specs=nosys.specs " CACHE INTERNAL "")
+set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_C_COMPILER> --run_linker --output_file=<TARGET> --map_file=<TARGET>.map <CMAKE_C_LINK_FLAGS> <LINK_LIBRARIES> <LINK_FLAGS> <OBJECTS>")
+SET(CMAKE_VERBOSE_MAKEFILE TRUE)
+set(CMAKE_VERBOSE_MAKEFILE ON)
+# search for programs in the build host directories
+SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+# for libraries and headers in the target directories
+SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+# Adding the CPU Architecture definition macro, this can be used to place platform specific actions 
+add_compile_definitions(MCU_ARCH_C2000)

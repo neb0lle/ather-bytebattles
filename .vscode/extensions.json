@@ -1,0 +1,8 @@
+{
+	"recommendations": [
+        "ms-vscode.cpptools-extension-pack",
+        "ms-vscode.vscode-serial-monitor",
+        "actboy168.tasks",
+        "marus25.cortex-debug",
+	]
+}
