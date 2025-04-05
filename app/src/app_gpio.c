@@ -116,11 +116,11 @@ static void ir_sensor_iteration(void) {
     temp2 = read_IR2;
 
     tx_buffer1[0] = 0x05;
-    if ((temp1 == true) && (temp2 == true)) {
+    if (temp1 && temp2) {
         tx_buffer1[1] = 0x00;
-    } else if ((temp1 == false) && (temp2 == true)) {
+    } else if (!temp1 && temp2) {
         tx_buffer1[1] = 0xFF;
-    } else if ((temp1 == true) && (temp2 == false)) {
+    } else if (temp1 && !temp2) {
         tx_buffer1[1] = 0x01;
     }
     app_can_send(0x305, tx_buffer1, 2);
