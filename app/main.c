@@ -4,20 +4,19 @@
 #include "asdk_platform.h"
 
 /* ASDK app includes */
-#include "asdk_system.h"
-#include "scheduler.h"
 #include "asdk_app.h"
+#include "asdk_system.h"
+#include "can_process.h"
 #include "debug_uart.h"
+#include "scheduler.h"
 
-int main()
-{    
+int main() {
     // asdk application
     asdk_app_init();
 
-    for (;;)
-    {
-        scheduler_iteration();   
-        debug_uart_iteration();     
+    for (;;) {
+        scheduler_iteration();
+        debug_uart_iteration();
     }
 
     return 0;
