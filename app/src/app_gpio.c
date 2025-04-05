@@ -24,9 +24,6 @@ static void gpio_callback(asdk_mcu_pin_t mcu_pin, uint32_t pin_state) {
     case MCU_PIN_29:
         button_pressed = true;
         break;
-    case MCU_PIN_34:
-        button_pressed = true;
-        break;
 
     default:
         break;
