@@ -17,10 +17,10 @@ volatile bool button_pressed = false;
 
 static void ir_sensor_iteration(void);
 static void rain_sensor_iteration(void);
+static void light_sensor_iteration(void);
 volatile bool temp1;
 volatile bool temp2;
 int8_t tx_buffer1[8] = {0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA};
-
 
 /* Interrupt callback function for GPIO */
 static void gpio_callback(asdk_mcu_pin_t mcu_pin, uint32_t pin_state) {
@@ -72,7 +72,7 @@ void app_gpio_iteration() {
     }
 
     ir_sensor_iteration();
-
+    light_sensor_iteration();
     rain_sensor_iteration();
 }
 
@@ -109,42 +109,27 @@ void app_gpio_toggle(asdk_mcu_pin_t pin) {
 
 static void ir_sensor_iteration(void) {
     /* IR Sensing */
-     
-    bool read_IR1=app_gpio_get_pin_state(IR1_SENSE);
-    bool read_IR2=app_gpio_get_pin_state(IR2_SENSE);
+
+    bool read_IR1 = app_gpio_get_pin_state(IR1_SENSE);
+    bool read_IR2 = app_gpio_get_pin_state(IR2_SENSE);
 
     temp1 = read_IR1;
     temp2 = read_IR2;
 
-
-
-    if ((temp1 == true)&&(temp2==true)) {
-        tx_buffer1[0]=0x05;
-        tx_buffer1[1]=0x00;
-        app_can_send(0x305,tx_buffer1,2);
-   
-    //turn left
-    } else if((temp1==false)&&(temp2==true)){
-
-        tx_buffer1[0]=0x05;
-        tx_buffer1[1]=0xFF;
-        app_can_send(0x305,tx_buffer1,2);
-
-    //turn right
-    } else if((temp1==true)&&(temp2==false)){
-         
-        tx_buffer1[0]=0x05;
-        tx_buffer1[1]=0x01;
-        app_can_send(0x305,tx_buffer1,2);
-
+    tx_buffer1[0] = 0x05;
+    tx_buffer1[1] = 0x00;
+    if (!temp1 && temp2) {
+        tx_buffer1[1] = -30;
+    } else if (temp1 && !temp2) {
+        tx_buffer1[1] = 30;
     }
-
-    
-    
+    app_can_send(0x305, tx_buffer1, 2);
 }
 
-static void rain_sensor_iteration(void)
-{
+static void light_sensor_iteration(void) {
+}
+
+static void rain_sensor_iteration(void) {
 
     /* Rain Sensing */
     if (app_gpio_get_pin_state(RAIN1_SENSE) == true) {
