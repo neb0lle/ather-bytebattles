@@ -129,4 +129,40 @@ void update_vehicle_speed() {
     app_can_send(0x306, tx306_buffer, 2);
 }
 
-void process_hold_state() {}
+void process_hold_state() {
+    static bool hold_active = false;
+    static bool manual_brake_requested = false;
+    static uint8_t previous_riding_mode = 0;
+
+    // Begin hold process only in Forward or Reverse when brake is applied
+    if ((riding_mode == 1 || riding_mode == 2) && brake_state && !hold_active) {
+        if (pitch > 10 || pitch < -10) {
+            vehicle_speed = 0;
+            manual_brake_requested = true;
+            previous_riding_mode = riding_mode;
+        }
+    }
+
+    // When vehicle is stopped and manual brake was requested
+    if (manual_brake_requested && vehicle_speed == 0 && brake_state) {
+        if (pitch > 10) {
+            riding_mode = 3; // HoldUp
+        } else if (pitch < -10) {
+            riding_mode = 4; // HoldDown
+        }
+
+        hold_active = true;
+        manual_brake_requested = false;
+    }
+
+    // Exit hold mode: go back to previous ride mode
+    if (hold_active && (!brake_state || throttle > 0)) {
+        riding_mode = previous_riding_mode;
+        hold_active = false;
+    }
+
+    // Transmit CAN
+    tx306_buffer[0] = riding_mode;
+    tx306_buffer[1] = vehicle_speed;
+    app_can_send(0x306, tx306_buffer, 2);
+}

@@ -11,10 +11,10 @@
 /* Debug Print includes */
 #include "debug_print.h"
 
-#define RPI_UART ASDK_UART_3
+#define RPI_UART ASDK_UART_2
 
-#define RPI_UART_TX_PIN MCU_PIN_53
-#define RPI_UART_RX_PIN MCU_PIN_52
+#define RPI_UART_TX_PIN MCU_PIN_61
+#define RPI_UART_RX_PIN MCU_PIN_60
 
 static asdk_uart_config_t __rpi_uart = {
     .uart_no = RPI_UART, /*!< UART no. indicates the UART module no. of the ECU */

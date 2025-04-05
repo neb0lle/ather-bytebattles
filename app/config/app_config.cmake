@@ -24,7 +24,6 @@ SET(APP_USER_INC
     ${CMAKE_CURRENT_SOURCE_DIR}/arsenal
     ${CMAKE_CURRENT_SOURCE_DIR}/config
     ${CMAKE_CURRENT_SOURCE_DIR}/sensors/ultrasonic
-    ${CMAKE_CURRENT_SOURCE_DIR}/sensors/colour
     # add other includes from here
     # example:
     # ${CMAKE_CURRENT_SOURCE_DIR}/app/app_imu
@@ -37,5 +36,4 @@ SET(APP_USER_INC
 AUX_SOURCE_DIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/arsenal APP_USER_SRC)
 AUX_SOURCE_DIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/config APP_USER_SRC)
 AUX_SOURCE_DIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/sensors/ultrasonic APP_USER_SRC)
-AUX_SOURCE_DIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/sensors/colour APP_USER_SRC)
 # ----- User confiugration ends ----- #

@@ -3,6 +3,6 @@
 
 /* ASDK User Action: Define new pins here */
 
-#define LDR_ADC_PIN     MCU_PIN_29      // LDR Sensor
+#define LDR_ADC_PIN     MCU_PIN_34      // LDR Sensor
 
 #endif /* ADC_CFG_H */
