@@ -103,7 +103,7 @@ void app_ldr_iteration()
     tx_adc_buffer[0]=0x02;
 
     // less than ambient light
-    if (LDR_brightness_lvl < 3000)
+    if (LDR_brightness_lvl > 3000)
     {
         tx_adc_buffer[1]=0x01;
     }
