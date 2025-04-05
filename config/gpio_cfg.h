@@ -8,19 +8,15 @@
 
 #define USER_BUTTON MCU_PIN_29
 
-#define IR1_SENSE   MCU_PIN_90
+#define IR1_SENSE   MCU_PIN_78
 
-#define RAIN1_SENSE MCU_PIN_73
+#define RAIN1_SENSE MCU_PIN_32
 
-#define ULTRASONIC_ECHO1   MCU_PIN_54
-#define ULTRASONIC_TRIG1   MCU_PIN_78
+#define ULTRASONIC_ECHO1   MCU_PIN_68
+#define ULTRASONIC_TRIG1   MCU_PIN_67
 
 #define ULTRASONIC_ECHO2 0xFF // To be defined by user, refer ULTRASONIC_ECHO1
 #define ULTRASONIC_ECHO3 0xFE // To be defined by user, refer ULTRASONIC_ECHO1
 #define ULTRASONIC_ECHO4 0xFD // To be defined by user, refer ULTRASONIC_ECHO1
-
-#define COLOUR_SENSOR_S2    MCU_PIN_17
-#define COLOUR_SENSOR_S3    MCU_PIN_14
-#define COLOUR_SENSOR       MCU_PIN_71
 
 #endif /* GPIO_CFG_H */
