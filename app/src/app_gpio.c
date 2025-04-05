@@ -20,7 +20,10 @@ static void rain_sensor_iteration(void);
 static void light_sensor_iteration(void);
 volatile bool temp1;
 volatile bool temp2;
-int8_t tx_buffer1[8] = {0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA};
+bool raining = false;
+extern volatile uint8_t indicator_state;
+
+uint8_t tx_buffer1[8] = {0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA};
 
 /* Interrupt callback function for GPIO */
 static void gpio_callback(asdk_mcu_pin_t mcu_pin, uint32_t pin_state) {
@@ -119,9 +122,9 @@ static void ir_sensor_iteration(void) {
     tx_buffer1[0] = 0x05;
     tx_buffer1[1] = 0x00;
     if (!temp1 && temp2) {
-        tx_buffer1[1] = -30;
+        tx_buffer1[1] = (uint8_t)-30;
     } else if (temp1 && !temp2) {
-        tx_buffer1[1] = 30;
+        tx_buffer1[1] = (uint8_t)30;
     }
     app_can_send(0x305, tx_buffer1, 2);
 }
@@ -129,18 +132,6 @@ static void ir_sensor_iteration(void) {
 static void light_sensor_iteration(void) {
 }
 
-static void rain_sensor_iteration(void)
-{
-
-    /* Rain Sensing */
-    if (app_gpio_get_pin_state(RAIN1_SENSE) == true) {
-        raining = true;
-    } else {
-        raining=false;
-    }
-
-    handle_rain();
-}
 
 uint32_t hazard_timer = 0;
 bool hazard_on = false;
@@ -174,4 +165,18 @@ void handle_rain(){
         hazard_timer = 0;
     }
     app_can_send(0x305,tx_buffer1,2);
+}
+
+
+static void rain_sensor_iteration(void)
+{
+
+    /* Rain Sensing */
+    if (app_gpio_get_pin_state(RAIN1_SENSE) == true) {
+        raining = true;
+    } else {
+        raining=false;
+    }
+
+    handle_rain();
 }
