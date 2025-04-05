@@ -130,6 +130,7 @@ static void ir_sensor_iteration(void)
 
     temp1 = read_IR1;
     temp2 = read_IR2;
+    
 
 
     if (app_gpio_get_pin_state(IR1_SENSE) == false) {

@@ -132,9 +132,9 @@ void update_vehicle_speed() {
 void process_hold_state() {
     static bool hold_active = false;
     static bool manual_brake_requested = false;
-    static uint8_t previous_riding_mode = 0;
+    static uint8_t previous_riding_mode = 1;
 
-    // Begin hold process only in Forward or Reverse when brake is applied
+    // Allow hold request only from Forward or Reverse
     if ((riding_mode == 1 || riding_mode == 2) && brake_state && !hold_active) {
         if (pitch > 10 || pitch < -10) {
             vehicle_speed = 0;
@@ -143,25 +143,38 @@ void process_hold_state() {
         }
     }
 
-    // When vehicle is stopped and manual brake was requested
+    // If manual brake is requested and vehicle is fully stopped
     if (manual_brake_requested && vehicle_speed == 0 && brake_state) {
         if (pitch > 10) {
-            riding_mode = 3; // HoldUp
+            riding_mode = 3;
         } else if (pitch < -10) {
-            riding_mode = 4; // HoldDown
+            riding_mode = 4;
         }
 
         hold_active = true;
         manual_brake_requested = false;
     }
 
-    // Exit hold mode: go back to previous ride mode
+    // Exit condition: brake released or throttle applied
     if (hold_active && (!brake_state || throttle > 0)) {
-        riding_mode = previous_riding_mode;
+        // Only restore if original mode was Forward or Reverse
+        if (previous_riding_mode == 1 || previous_riding_mode == 2) {
+            riding_mode = previous_riding_mode;
+        } else {
+            riding_mode = 0; // Fallback to Neutral
+        }
+
         hold_active = false;
     }
 
-    // Transmit CAN
+    // Fail-safe: prevent entering hold from Neutral
+    if ((riding_mode == 3 || riding_mode == 4) && previous_riding_mode == 0) {
+        riding_mode = 0; // Reset to Neutral
+        hold_active = false;
+        manual_brake_requested = false;
+    }
+
+    // Transmit updated state
     tx306_buffer[0] = riding_mode;
     tx306_buffer[1] = vehicle_speed;
     app_can_send(0x306, tx306_buffer, 2);
