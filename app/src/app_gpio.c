@@ -145,28 +145,37 @@ void handle_rain(){
         return;
     }
 
-    tx_buffer1[0]=0x04;
+    tx_buffer1[0] = 0x04;
+
     if(raining){
         hazard_active = true;
-        // Turn on hazard lights (assuming 0x01 and 0x02 are left/right respectively)
-        tx_buffer1[1]=0x01;
-        app_can_send(0x305,tx_buffer1,2);
-        tx_buffer1[1]=0x02;
+        hazard_timer++;  // Increment every 100ms iteration
 
-        hazard_timer++;
-        if(hazard_timer == 10){
-            tx_buffer1[1]=0x00;
+        if(hazard_timer >= 3){
             hazard_timer = 0;
-            hazard_on = !hazard_on;
+            hazard_on = !hazard_on;  // Toggle hazard state every 300ms
+        }
+
+        if(hazard_on){
+            // Turn hazard lights ON (assuming 0x01 for left and 0x02 for right)
+            tx_buffer1[1] = 0x01;
+            app_can_send(0x305, tx_buffer1, 2);
+            tx_buffer1[1] = 0x02;
+            app_can_send(0x305, tx_buffer1, 2);
+        }
+        else{
+            // Turn hazard lights OFF
+            tx_buffer1[1] = 0x00;
+            app_can_send(0x305, tx_buffer1, 2);
         }
     }
     else{
         hazard_active = false;
-        // Turn off hazard lights
-        tx_buffer1[1]=0x00;
         hazard_timer = 0;
+        // Make sure hazard lights are off when not raining
+        tx_buffer1[1] = 0x00;
+        app_can_send(0x305, tx_buffer1, 2);
     }
-    app_can_send(0x305,tx_buffer1,2);
 }
 
 
