@@ -141,22 +141,26 @@ void process_hold_state() {
 #define INCLINE_THRESHOLD 10
 #define DECLINE_THRESHOLD -10
 
-    // Trigger Hold Mode
-    if ((riding_mode == 1 || riding_mode == 2) && brake_state &&
-        vehicle_speed == 0 && !hold_active &&
+    // Activate Hold mode only if all 3 conditions are met
+    if (!hold_active &&
+        (riding_mode == 1 || riding_mode == 2 || riding_mode == 5) &&
+        brake_state && vehicle_speed == 0 &&
         (pitch >= INCLINE_THRESHOLD || pitch <= DECLINE_THRESHOLD)) {
 
+        previous_riding_mode = riding_mode;
+
         if (pitch >= INCLINE_THRESHOLD) {
-            riding_mode = 3; // HoldUp
-        } else {
-            riding_mode = 4; // HoldDown
+            riding_mode =
+                (riding_mode == 5) ? 4 : 3; // Reverse -> HoldDown, else HoldUp
+        } else if (pitch <= DECLINE_THRESHOLD) {
+            riding_mode =
+                (riding_mode == 5) ? 3 : 4; // Reverse -> HoldUp, else HoldDown
         }
 
-        previous_riding_mode = riding_mode; // Save mode before entering hold
         hold_active = true;
     }
 
-    // Exit Hold Mode on throttle input
+    // Exit Hold mode only on throttle input
     if (hold_active && throttle > 0) {
         riding_mode = previous_riding_mode;
         hold_active = false;
