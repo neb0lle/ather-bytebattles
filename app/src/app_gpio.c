@@ -154,7 +154,7 @@ void handle_rain(){
         tx_buffer1[1]=0x02;
 
         hazard_timer++;
-        if(hazard_timer == 2){
+        if(hazard_timer == 10){
             tx_buffer1[1]=0x00;
             hazard_timer = 0;
             hazard_on = !hazard_on;
