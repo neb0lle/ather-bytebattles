@@ -167,7 +167,7 @@ void handle_rain() {
         hazard_active = true;
         hazard_timer++; // Increment every 100ms iteration
 
-        if (hazard_timer >= 10) {
+        if (hazard_timer >= 3) {
             hazard_timer = 0;
             hazard_on = !hazard_on; // Toggle hazard state every 300ms
 
@@ -258,6 +258,7 @@ static void ultrasonic_sensor_iteration(void) {
 }
 
 static void obs_ultrasonic_sensor_iteration(void) {
+    static bool already_honked = false;
     current_time = asdk_sys_get_time_ms();
 
     // Trigger every 100ms
@@ -273,7 +274,7 @@ static void obs_ultrasonic_sensor_iteration(void) {
     }
 
     // Read echo pin state
-    bool echo_state = app_gpio_get_pin_state(ULTRASONIC_ECHO1);
+    bool echo_state = app_gpio_get_pin_state(ULTRASONIC_ECHO2);
 
     if (echo_state && echo_captured) {
         // Rising edge
@@ -290,19 +291,19 @@ static void obs_ultrasonic_sensor_iteration(void) {
             (2 * 1000); // cm
                         // static bool already_honked = false;
 
-        if (measured_distance_cm < OBSTACLE_DISTANCE_THRESHOLD_CM &&
+        if (measured_distance_cm < 100 &&
             !already_honked) {
-            tx_buffer[0] = 0x01;
-            tx_buffer[1] = 0x01;
-            app_can_send(0x305, tx_buffer, 2);
-            tx_buffer[1] = 0x00;
-            app_can_send(0x305, tx_buffer, 2);
-            tx_buffer[1] = 0x01;
-            app_can_send(0x305, tx_buffer, 2);
-            tx_buffer[1] = 0x00;
-            app_can_send(0x305, tx_buffer, 2);
+            tx_buffer1[0] = 0x01;
+            tx_buffer1[1] = 0x01;
+            app_can_send(0x305, tx_buffer1, 2);
+            tx_buffer1[1] = 0x00;
+            app_can_send(0x305, tx_buffer1, 2);
+            tx_buffer1[1] = 0x01;
+            app_can_send(0x305, tx_buffer1, 2);
+            tx_buffer1[1] = 0x00;
+            app_can_send(0x305, tx_buffer1, 2);
             already_honked = true;
-        } else if (measured_distance_cm >= OBSTACLE_DISTANCE_THRESHOLD_CM) {
+        } else if (measured_distance_cm >= 100) {
             already_honked = false;
         }
 
