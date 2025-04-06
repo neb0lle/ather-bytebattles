@@ -175,7 +175,7 @@ static void rain_sensor_iteration(void)
 
     rain_temp = app_gpio_get_pin_state(RAIN1_SENSE);
     /* Rain Sensing */
-    if (app_gpio_get_pin_state(RAIN1_SENSE) == true) {
+    if (app_gpio_get_pin_state(RAIN1_SENSE) == false) {
         raining = true;
     } else {
         raining=false;
