@@ -31,6 +31,7 @@ static void ir_sensor_iteration(void);
 static void rain_sensor_iteration(void);
 static void light_sensor_iteration(void);
 static void ultrasonic_sensor_iteration(void);
+static void obs_ultrasonic_sensor_iteration(void);
 
 volatile bool temp1;
 volatile bool temp2;
@@ -95,6 +96,7 @@ void app_gpio_iteration() {
     light_sensor_iteration();
     rain_sensor_iteration();
     ultrasonic_sensor_iteration();
+    obs_ultrasonic_sensor_iteration();
 }
 
 bool app_gpio_get_pin_state(asdk_mcu_pin_t pin) {
@@ -159,36 +161,35 @@ void handle_rain() {
         return;
     }
 
-    tx_buffer1[0] = 0x04;  // Command byte for indicators
+    tx_buffer1[0] = 0x04; // Command byte for indicators
 
-    if(raining) {
+    if (raining) {
         hazard_active = true;
-        hazard_timer++;  // Increment every 100ms iteration
+        hazard_timer++; // Increment every 100ms iteration
 
-        if(hazard_timer >= 10) {
+        if (hazard_timer >= 10) {
             hazard_timer = 0;
-            hazard_on = !hazard_on;  // Toggle hazard state every 300ms
-            
-            if(hazard_on) {
+            hazard_on = !hazard_on; // Toggle hazard state every 300ms
+
+            if (hazard_on) {
                 // Turn both indicators ON in sequence with minimal delay
-                tx_buffer1[1] = 0x01;  // Left indicator ON
+                tx_buffer1[1] = 0x01; // Left indicator ON
                 app_can_send(0x305, tx_buffer1, 2);
-                
-                tx_buffer1[1] = 0x02;  // Right indicator ON
+
+                tx_buffer1[1] = 0x02; // Right indicator ON
                 app_can_send(0x305, tx_buffer1, 2);
-            }
-            else {
+            } else {
                 // Turn both indicators OFF
-                tx_buffer1[1] = 0x00;  // Disable both indicators
+                tx_buffer1[1] = 0x00; // Disable both indicators
                 app_can_send(0x305, tx_buffer1, 2);
             }
         }
     } else {
-        if(hazard_active) {
+        if (hazard_active) {
             // Make sure hazard lights are off when rain stops
             hazard_active = false;
             hazard_timer = 0;
-            tx_buffer1[1] = 0x00;  // Disable both indicators
+            tx_buffer1[1] = 0x00; // Disable both indicators
             app_can_send(0x305, tx_buffer1, 2);
         }
     }
@@ -252,6 +253,59 @@ static void ultrasonic_sensor_iteration(void) {
         }
 
         prev_distance_cm = measured_distance_cm;
+        echo_captured = true;
+    }
+}
+
+static void obs_ultrasonic_sensor_iteration(void) {
+    current_time = asdk_sys_get_time_ms();
+
+    // Trigger every 100ms
+    if ((current_time - last_trigger_time) >= 100) {
+        if (!trigger_state) {
+            app_gpio_set_pin_state(ULTRASONIC_TRIG2, true); // Send 10us pulse
+            trigger_state = true;
+        } else {
+            app_gpio_set_pin_state(ULTRASONIC_TRIG2, false);
+            trigger_state = false;
+            last_trigger_time = current_time;
+        }
+    }
+
+    // Read echo pin state
+    bool echo_state = app_gpio_get_pin_state(ULTRASONIC_ECHO1);
+
+    if (echo_state && echo_captured) {
+        // Rising edge
+        echo_start = asdk_sys_get_time_ms();
+        echo_captured = false;
+    } else if (!echo_state && !echo_captured) {
+        // Falling edge
+        echo_end = asdk_sys_get_time_ms();
+        uint32_t duration_ms = echo_end - echo_start;
+
+        // Convert to cm
+        measured_distance_cm =
+            (duration_ms * 34300) /
+            (2 * 1000); // cm
+                        // static bool already_honked = false;
+
+        if (measured_distance_cm < OBSTACLE_DISTANCE_THRESHOLD_CM &&
+            !already_honked) {
+            tx_buffer[0] = 0x01;
+            tx_buffer[1] = 0x01;
+            app_can_send(0x305, tx_buffer, 2);
+            tx_buffer[1] = 0x00;
+            app_can_send(0x305, tx_buffer, 2);
+            tx_buffer[1] = 0x01;
+            app_can_send(0x305, tx_buffer, 2);
+            tx_buffer[1] = 0x00;
+            app_can_send(0x305, tx_buffer, 2);
+            already_honked = true;
+        } else if (measured_distance_cm >= OBSTACLE_DISTANCE_THRESHOLD_CM) {
+            already_honked = false;
+        }
+
         echo_captured = true;
     }
 }
