@@ -135,35 +135,28 @@ void update_vehicle_speed() {
 }
 
 void process_hold_state() {
-    static bool manual_brake_requested = false;
     static uint8_t previous_riding_mode = 1;
 
 // Thresholds for hill detection
 #define INCLINE_THRESHOLD 10
 #define DECLINE_THRESHOLD -10
 
-    // Check if we should trigger manual brake and prep for hold
-    if ((riding_mode == 1 || riding_mode == 2) && brake_state && !hold_active) {
-        if (pitch >= INCLINE_THRESHOLD || pitch <= DECLINE_THRESHOLD) {
-            vehicle_speed = 0;
-            manual_brake_requested = true;
-            previous_riding_mode = riding_mode;
-        }
-    }
+    // Trigger Hold Mode
+    if ((riding_mode == 1 || riding_mode == 2) && brake_state &&
+        vehicle_speed == 0 && !hold_active &&
+        (pitch >= INCLINE_THRESHOLD || pitch <= DECLINE_THRESHOLD)) {
 
-    // Enter hold mode once stopped
-    if (manual_brake_requested && vehicle_speed == 0) {
         if (pitch >= INCLINE_THRESHOLD) {
             riding_mode = 3; // HoldUp
-        } else if (pitch <= DECLINE_THRESHOLD) {
+        } else {
             riding_mode = 4; // HoldDown
         }
 
+        previous_riding_mode = riding_mode; // Save mode before entering hold
         hold_active = true;
-        manual_brake_requested = false;
     }
 
-    // Exit hold mode only on throttle input
+    // Exit Hold Mode on throttle input
     if (hold_active && throttle > 0) {
         riding_mode = previous_riding_mode;
         hold_active = false;
@@ -173,7 +166,6 @@ void process_hold_state() {
     if ((riding_mode == 3 || riding_mode == 4) && previous_riding_mode == 0) {
         riding_mode = 0;
         hold_active = false;
-        manual_brake_requested = false;
     }
 
     // Transmit updated state
