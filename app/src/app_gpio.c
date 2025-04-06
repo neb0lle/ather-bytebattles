@@ -3,7 +3,6 @@
 
 /* ASDK includes */
 #include "asdk_error.h"
-#include "asdk_sys.h" // For asdk_sys_get_time_ms()
 
 /* Application specific includes */
 #include "app_can.h"
