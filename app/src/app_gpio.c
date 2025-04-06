@@ -36,7 +36,7 @@ volatile bool temp1;
 volatile bool temp2;
 volatile bool rain_temp;
 
-bool raining = false;
+static bool raining = false;
 extern volatile uint8_t indicator_state;
 
 uint8_t tx_buffer1[8] = {0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA};
@@ -149,9 +149,9 @@ static void ir_sensor_iteration(void) {
 
 static void light_sensor_iteration(void) {}
 
-uint32_t hazard_timer = 0;
-bool hazard_on = false;
-bool hazard_active = false;
+static uint32_t hazard_timer = 0;
+static bool hazard_on = false;
+static bool hazard_active = false;
 
 void handle_rain() {
     if (indicator_state != 0) {
