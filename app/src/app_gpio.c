@@ -20,6 +20,8 @@ static void rain_sensor_iteration(void);
 static void light_sensor_iteration(void);
 volatile bool temp1;
 volatile bool temp2;
+volatile bool rain_temp;
+
 bool raining = false;
 extern volatile uint8_t indicator_state;
 
@@ -171,6 +173,7 @@ void handle_rain(){
 static void rain_sensor_iteration(void)
 {
 
+    rain_temp = app_gpio_get_pin_state(RAIN1_SENSE);
     /* Rain Sensing */
     if (app_gpio_get_pin_state(RAIN1_SENSE) == true) {
         raining = true;
