@@ -5,10 +5,12 @@
 #include "asdk_error.h"
 
 /* Application specific includes */
+#include "../../sensors/ultrasonic/ultrasonic.h"
 #include "app_can.h"
 #include "app_gpio.h"
 #include "gpio_cfg.h"
 #include <stdbool.h>
+#include <stdint.h>
 
 /* Debug Print includes */
 #include "debug_print.h"
@@ -145,23 +147,22 @@ void handle_rain() {
 
     tx_buffer1[0] = 0x04;
 
-    if(raining){
+    if (raining) {
         hazard_active = true;
-        hazard_timer++;  // Increment every 100ms iteration
+        hazard_timer++; // Increment every 100ms iteration
 
-        if(hazard_timer >= 3){
+        if (hazard_timer >= 3) {
             hazard_timer = 0;
-            hazard_on = !hazard_on;  // Toggle hazard state every 300ms
+            hazard_on = !hazard_on; // Toggle hazard state every 300ms
         }
 
-        if(hazard_on){
+        if (hazard_on) {
             // Turn hazard lights ON (assuming 0x01 for left and 0x02 for right)
             tx_buffer1[1] = 0x01;
             app_can_send(0x305, tx_buffer1, 2);
             tx_buffer1[1] = 0x02;
             app_can_send(0x305, tx_buffer1, 2);
-        }
-        else{
+        } else {
             // Turn hazard lights OFF
             tx_buffer1[1] = 0x00;
             app_can_send(0x305, tx_buffer1, 2);
@@ -186,4 +187,23 @@ static void rain_sensor_iteration(void) {
     }
 
     handle_rain();
+}
+
+static void ultrasonic_sensor_iteration(void) {
+    static int32_t prev_distance = -1;
+    uint32_t threshold = 10;
+
+    distance = ultrasonic_get_distance(ULTRASONIC_TRIG1);
+
+    if (prev_distance == -1) {
+        prev_distance = distance;
+        return;
+    }
+
+    if (abs((int32_t)distance - prev_distance) > threshold) {
+        DEBUG_PRINTF("Distance changed significantly: %lu -> %lu\r\n",
+                     prev_distance, distance);
+    }
+
+    prev_distance = distance;
 }
