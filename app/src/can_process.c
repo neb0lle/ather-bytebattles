@@ -137,41 +137,35 @@ void update_vehicle_speed() {
 void process_hold_state() {
     static uint8_t previous_riding_mode = 1;
 
-// Thresholds for hill detection
-#define INCLINE_THRESHOLD -5
-#define DECLINE_THRESHOLD 5
+#define INCLINE_THRESHOLD -5 // Uphill (negative pitch)
+#define DECLINE_THRESHOLD 5  // Downhill (positive pitch)
 
     // Activate Hold mode only if all 3 conditions are met
     if (!hold_active && (riding_mode == 1 || riding_mode == 2) && brake_state &&
         vehicle_speed == 0 &&
-        (pitch >= INCLINE_THRESHOLD || pitch <= DECLINE_THRESHOLD)) {
+        (pitch <= INCLINE_THRESHOLD || pitch >= DECLINE_THRESHOLD)) {
 
         previous_riding_mode = riding_mode;
 
-        if (pitch >= INCLINE_THRESHOLD) {
-            riding_mode =
-                (riding_mode == 2) ? 4 : 3; // Reverse -> HoldDown, else HoldUp
-        } else if (pitch <= DECLINE_THRESHOLD) {
-            riding_mode =
-                (riding_mode == 2) ? 3 : 4; // Reverse -> HoldUp, else HoldDown
+        if (pitch <= INCLINE_THRESHOLD) {
+            riding_mode = 3; // HoldUp
+        } else if (pitch >= DECLINE_THRESHOLD) {
+            riding_mode = 4; // HoldDown
         }
 
         hold_active = true;
     }
 
-    // Exit Hold mode only on throttle input
     if (hold_active && throttle > 0) {
         riding_mode = previous_riding_mode;
         hold_active = false;
     }
 
-    // Failsafe: Prevent hold from Neutral
     if ((riding_mode == 3 || riding_mode == 4) && previous_riding_mode == 0) {
         riding_mode = 0;
         hold_active = false;
     }
 
-    // Transmit updated state
     tx306_buffer[0] = riding_mode;
     tx306_buffer[1] = vehicle_speed;
     app_can_send(0x306, tx306_buffer, 2);
