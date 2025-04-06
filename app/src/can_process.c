@@ -138,23 +138,22 @@ void process_hold_state() {
     static uint8_t previous_riding_mode = 1;
 
 // Thresholds for hill detection
-#define INCLINE_THRESHOLD 10
-#define DECLINE_THRESHOLD -10
+#define INCLINE_THRESHOLD -5
+#define DECLINE_THRESHOLD 5
 
     // Activate Hold mode only if all 3 conditions are met
-    if (!hold_active &&
-        (riding_mode == 1 || riding_mode == 2 || riding_mode == 5) &&
-        brake_state && vehicle_speed == 0 &&
+    if (!hold_active && (riding_mode == 1 || riding_mode == 2) && brake_state &&
+        vehicle_speed == 0 &&
         (pitch >= INCLINE_THRESHOLD || pitch <= DECLINE_THRESHOLD)) {
 
         previous_riding_mode = riding_mode;
 
         if (pitch >= INCLINE_THRESHOLD) {
             riding_mode =
-                (riding_mode == 5) ? 4 : 3; // Reverse -> HoldDown, else HoldUp
+                (riding_mode == 2) ? 4 : 3; // Reverse -> HoldDown, else HoldUp
         } else if (pitch <= DECLINE_THRESHOLD) {
             riding_mode =
-                (riding_mode == 5) ? 3 : 4; // Reverse -> HoldUp, else HoldDown
+                (riding_mode == 2) ? 3 : 4; // Reverse -> HoldUp, else HoldDown
         }
 
         hold_active = true;
