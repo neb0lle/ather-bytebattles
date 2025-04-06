@@ -20,7 +20,12 @@ static void rain_sensor_iteration(void);
 static void light_sensor_iteration(void);
 volatile bool temp1;
 volatile bool temp2;
-int8_t tx_buffer1[8] = {0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA};
+volatile bool rain_temp;
+
+bool raining = false;
+extern volatile uint8_t indicator_state;
+
+uint8_t tx_buffer1[8] = {0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA};
 
 /* Interrupt callback function for GPIO */
 static void gpio_callback(asdk_mcu_pin_t mcu_pin, uint32_t pin_state) {
@@ -72,7 +77,7 @@ void app_gpio_iteration() {
     }
 
     ir_sensor_iteration();
-
+    light_sensor_iteration();
     rain_sensor_iteration();
 }
 
@@ -117,40 +122,60 @@ static void ir_sensor_iteration(void) {
     temp2 = read_IR2;
 
     tx_buffer1[0] = 0x05;
-    if (temp1 && temp2) {
-        tx_buffer1[1] = 0x00;
-    } else if (!temp1 && temp2) {
-        tx_buffer1[1] = 0xFF;
+    tx_buffer1[1] = 0x00;
+    if (!temp1 && temp2) {
+        tx_buffer1[1] = (uint8_t)-30;
     } else if (temp1 && !temp2) {
-        tx_buffer1[1] = 0x01;
+        tx_buffer1[1] = (uint8_t)30;
     }
     app_can_send(0x305, tx_buffer1, 2);
 }
 
-static void light_sensor_iteration(void) {
-    /* IR Sensing */
+static void light_sensor_iteration(void) {}
 
-    bool read_IR3 = app_gpio_get_pin_state();
+uint32_t hazard_timer = 0;
+bool hazard_on = false;
+bool hazard_active = false;
 
-    temp1 = read_IR1;
-    temp2 = read_IR2;
+void handle_rain() {
+    if (indicator_state != 0) {
+        // Indicators are on, so do not enable hazard lights.
+        return;
+    }
 
-    tx_buffer1[0] = 0x05;
-    if (temp1 && temp2) {
-        tx_buffer1[1] = 0x00;
-    } else if (!temp1 && temp2) {
-        tx_buffer1[1] = 0xFF;
-    } else if (temp1 && !temp2) {
+    tx_buffer1[0] = 0x04;
+    if (raining) {
+        hazard_active = true;
+        // Turn on hazard lights (assuming 0x01 and 0x02 are left/right
+        // respectively)
         tx_buffer1[1] = 0x01;
+        app_can_send(0x305, tx_buffer1, 2);
+        tx_buffer1[1] = 0x02;
+
+        hazard_timer++;
+        if (hazard_timer == 10) {
+            tx_buffer1[1] = 0x00;
+            hazard_timer = 0;
+            hazard_on = !hazard_on;
+        }
+    } else {
+        hazard_active = false;
+        // Turn off hazard lights
+        tx_buffer1[1] = 0x00;
+        hazard_timer = 0;
     }
     app_can_send(0x305, tx_buffer1, 2);
 }
 
 static void rain_sensor_iteration(void) {
 
+    rain_temp = app_gpio_get_pin_state(RAIN1_SENSE);
     /* Rain Sensing */
-    if (app_gpio_get_pin_state(RAIN1_SENSE) == true) {
-
+    if (app_gpio_get_pin_state(RAIN1_SENSE) == false) {
+        raining = true;
     } else {
+        raining = false;
     }
+
+    handle_rain();
 }

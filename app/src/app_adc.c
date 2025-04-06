@@ -7,6 +7,7 @@
 /* Application specific includes */
 #include "app_adc.h"
 #include "adc_cfg.h"
+#include "app_can.h"
 
 /* Debug Print includes */
 #include "debug_print.h"
@@ -16,6 +17,8 @@
 static asdk_errorcode_t status;
 
 volatile bool adc_complete;
+
+uint8_t tx_adc_buffer[8] = {0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA};
 
 asdk_adc_callback_t adc_callback_params;
 
@@ -97,8 +100,15 @@ void app_ldr_iteration()
 {
     LDR_brightness_lvl = app_get_adc_value(LDR_ADC_PIN);
 
+    tx_adc_buffer[0]=0x02;
+
+    // less than ambient light
     if (LDR_brightness_lvl > 3000)
     {
-        /* Take action */
+        tx_adc_buffer[1]=0x01;
     }
+    else{
+        tx_adc_buffer[1]=0x00;
+    }
+    app_can_send(0x305, tx_adc_buffer, 2);
 }

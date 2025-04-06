@@ -16,6 +16,7 @@ asdk_gpio_config_t gpio_output_config[] = {
 asdk_gpio_config_t gpio_input_config[] = {
     GPIO_INPUT_CONFIG(USER_BUTTON),
     GPIO_INPUT_CONFIG(IR1_SENSE),
+    GPIO_INPUT_CONFIG(IR2_SENSE),
     GPIO_INPUT_CONFIG(ULTRASONIC_ECHO1),
     GPIO_INPUT_CONFIG(RAIN1_SENSE),
     // GPIO_INPUT_CONFIG_WITH_INTERRUPT(USER_BUTTON),

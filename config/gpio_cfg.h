@@ -8,7 +8,10 @@
 
 #define USER_BUTTON MCU_PIN_29
 
-#define IR1_SENSE   MCU_PIN_78
+#define IR1_SENSE   MCU_PIN_90
+
+
+#define IR2_SENSE   MCU_PIN_79
 
 #define RAIN1_SENSE MCU_PIN_32
 

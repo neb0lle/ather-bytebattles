@@ -136,7 +136,7 @@ void update_vehicle_speed() {
 
 void process_hold_state() {
     static bool manual_brake_requested = false;
-    static uint8_t previous_riding_mode = 0;
+    static uint8_t previous_riding_mode = 1;
 
 // Thresholds for hill detection
 #define INCLINE_THRESHOLD 10
