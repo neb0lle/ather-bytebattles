@@ -159,37 +159,40 @@ void handle_rain() {
         return;
     }
 
-    tx_buffer1[0] = 0x04;
+    tx_buffer1[0] = 0x04;  // Command byte for indicators
 
-    if (raining) {
+    if(raining) {
         hazard_active = true;
-        hazard_timer++; // Increment every 100ms iteration
+        hazard_timer++;  // Increment every 100ms iteration
 
-        if (hazard_timer >= 3) {
+        if(hazard_timer >= 3) {
             hazard_timer = 0;
-            hazard_on = !hazard_on; // Toggle hazard state every 300ms
-        }
-
-        if (hazard_on) {
-            // Turn hazard lights ON (assuming 0x01 for left and 0x02 for right)
-            tx_buffer1[1] = 0x01;
-            app_can_send(0x305, tx_buffer1, 2);
-            tx_buffer1[1] = 0x02;
-            app_can_send(0x305, tx_buffer1, 2);
-        } else {
-            // Turn hazard lights OFF
-            tx_buffer1[1] = 0x00;
-            app_can_send(0x305, tx_buffer1, 2);
+            hazard_on = !hazard_on;  // Toggle hazard state every 300ms
+            
+            if(hazard_on) {
+                // Turn both indicators ON in sequence with minimal delay
+                tx_buffer1[1] = 0x01;  // Left indicator ON
+                app_can_send(0x305, tx_buffer1, 2);
+                
+                tx_buffer1[1] = 0x02;  // Right indicator ON
+                app_can_send(0x305, tx_buffer1, 2);
+            }
+            else {
+                // Turn both indicators OFF
+                tx_buffer1[1] = 0x00;  // Disable both indicators
+                app_can_send(0x305, tx_buffer1, 2);
+            }
         }
     } else {
-        hazard_active = false;
-        hazard_timer = 0;
-        // Make sure hazard lights are off when not raining
-        tx_buffer1[1] = 0x00;
-        app_can_send(0x305, tx_buffer1, 2);
+        if(hazard_active) {
+            // Make sure hazard lights are off when rain stops
+            hazard_active = false;
+            hazard_timer = 0;
+            tx_buffer1[1] = 0x00;  // Disable both indicators
+            app_can_send(0x305, tx_buffer1, 2);
+        }
     }
 }
-
 static void rain_sensor_iteration(void) {
 
     rain_temp = app_gpio_get_pin_state(RAIN1_SENSE);
