@@ -11,6 +11,8 @@
 /* Debug Print includes */
 #include "debug_print.h"
 
+volatile uint8_t pi_data;
+
 #define RPI_UART ASDK_UART_2
 
 #define RPI_UART_TX_PIN MCU_PIN_61
@@ -60,6 +62,7 @@ void app_rpi_iteration()
     if (__rpi_data)
     {
         // DEBUG_PRINTF("Data received from RPI: %s\r\n", __rpi_data_buffer);
+        pi_data = __rpi_data_buffer[0];
         asdk_uart_read_non_blocking(RPI_UART, __rpi_data_buffer, sizeof(__rpi_data_buffer));
         __rpi_data = false;
     }

@@ -23,7 +23,7 @@ static uint32_t echo_end = 0;
 static uint32_t measured_distance_cm = 0;
 static uint32_t prev_distance_cm = (uint32_t)-1;
 static const uint32_t pothole_threshold_cm =
-    10; // Adjust this based on sensitivity
+    10000; // Adjust this based on sensitivity
 
 volatile bool button_pressed = false;
 
