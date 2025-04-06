@@ -3,9 +3,9 @@
 
 /* ASDK includes */
 #include "asdk_error.h"
+#include "asdk_sys.h" // For asdk_sys_get_time_ms()
 
 /* Application specific includes */
-#include "../../sensors/ultrasonic/ultrasonic.h"
 #include "app_can.h"
 #include "app_gpio.h"
 #include "gpio_cfg.h"
@@ -15,11 +15,22 @@
 /* Debug Print includes */
 #include "debug_print.h"
 
+static uint32_t current_time;
+static uint32_t last_trigger_time;
+static bool trigger_state;
+
+static bool echo_captured = true;
+static uint32_t echo_start = 0;
+static uint32_t echo_end = 0;
+static uint32_t measured_distance_cm = 0;
+
 volatile bool button_pressed = false;
 
 static void ir_sensor_iteration(void);
 static void rain_sensor_iteration(void);
 static void light_sensor_iteration(void);
+static void ultrasonic_sensor_iteration(void);
+
 volatile bool temp1;
 volatile bool temp2;
 volatile bool rain_temp;
@@ -81,6 +92,7 @@ void app_gpio_iteration() {
     ir_sensor_iteration();
     light_sensor_iteration();
     rain_sensor_iteration();
+    ultrasonic_sensor_iteration();
 }
 
 bool app_gpio_get_pin_state(asdk_mcu_pin_t pin) {
@@ -190,20 +202,37 @@ static void rain_sensor_iteration(void) {
 }
 
 static void ultrasonic_sensor_iteration(void) {
-    static int32_t prev_distance = -1;
-    uint32_t threshold = 10;
+    current_time = asdk_sys_get_time_ms();
 
-    distance = ultrasonic_get_distance(ULTRASONIC_TRIG1);
-
-    if (prev_distance == -1) {
-        prev_distance = distance;
-        return;
+    // Trigger every 100ms
+    if ((current_time - last_trigger_time) >= 100) {
+        if (!trigger_state) {
+            app_gpio_set_pin_state(ULTRASONIC_TRIG1, true); // Send 10us pulse
+            trigger_state = true;
+        } else {
+            app_gpio_set_pin_state(ULTRASONIC_TRIG1, false);
+            trigger_state = false;
+            last_trigger_time = current_time;
+        }
     }
 
-    if (abs((int32_t)distance - prev_distance) > threshold) {
-        DEBUG_PRINTF("Distance changed significantly: %lu -> %lu\r\n",
-                     prev_distance, distance);
-    }
+    // Read echo pin state
+    bool echo_state = app_gpio_get_pin_state(ULTRASONIC_ECHO1);
 
-    prev_distance = distance;
+    if (echo_state && echo_captured) {
+        // Rising edge
+        echo_start = asdk_sys_get_time_ms();
+        echo_captured = false;
+    } else if (!echo_state && !echo_captured) {
+        // Falling edge
+        echo_end = asdk_sys_get_time_ms();
+        uint32_t duration_ms = echo_end - echo_start;
+
+        // Convert time to distance: distance = (duration * speed_of_sound)/2
+        // Speed of sound = 34300 cm/s → 34.3 cm/ms
+        measured_distance_cm =
+            (duration_ms * 34300) / (2 * 1000); // result in cm
+
+        echo_captured = true;
+    }
 }
