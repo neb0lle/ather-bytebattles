@@ -36,7 +36,7 @@ volatile bool temp1;
 volatile bool temp2;
 volatile bool rain_temp;
 
-bool raining = false;
+static bool raining = false;
 extern volatile uint8_t indicator_state;
 
 uint8_t tx_buffer1[8] = {0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA};
@@ -149,9 +149,9 @@ static void ir_sensor_iteration(void) {
 
 static void light_sensor_iteration(void) {}
 
-uint32_t hazard_timer = 0;
-bool hazard_on = false;
-bool hazard_active = false;
+static uint32_t hazard_timer = 0;
+static bool hazard_on = false;
+static bool hazard_active = false;
 
 void handle_rain() {
     if (indicator_state != 0) {
@@ -159,37 +159,40 @@ void handle_rain() {
         return;
     }
 
-    tx_buffer1[0] = 0x04;
+    tx_buffer1[0] = 0x04;  // Command byte for indicators
 
-    if (raining) {
+    if(raining) {
         hazard_active = true;
-        hazard_timer++; // Increment every 100ms iteration
+        hazard_timer++;  // Increment every 100ms iteration
 
-        if (hazard_timer >= 3) {
+        if(hazard_timer >= 10) {
             hazard_timer = 0;
-            hazard_on = !hazard_on; // Toggle hazard state every 300ms
-        }
-
-        if (hazard_on) {
-            // Turn hazard lights ON (assuming 0x01 for left and 0x02 for right)
-            tx_buffer1[1] = 0x01;
-            app_can_send(0x305, tx_buffer1, 2);
-            tx_buffer1[1] = 0x02;
-            app_can_send(0x305, tx_buffer1, 2);
-        } else {
-            // Turn hazard lights OFF
-            tx_buffer1[1] = 0x00;
-            app_can_send(0x305, tx_buffer1, 2);
+            hazard_on = !hazard_on;  // Toggle hazard state every 300ms
+            
+            if(hazard_on) {
+                // Turn both indicators ON in sequence with minimal delay
+                tx_buffer1[1] = 0x01;  // Left indicator ON
+                app_can_send(0x305, tx_buffer1, 2);
+                
+                tx_buffer1[1] = 0x02;  // Right indicator ON
+                app_can_send(0x305, tx_buffer1, 2);
+            }
+            else {
+                // Turn both indicators OFF
+                tx_buffer1[1] = 0x00;  // Disable both indicators
+                app_can_send(0x305, tx_buffer1, 2);
+            }
         }
     } else {
-        hazard_active = false;
-        hazard_timer = 0;
-        // Make sure hazard lights are off when not raining
-        tx_buffer1[1] = 0x00;
-        app_can_send(0x305, tx_buffer1, 2);
+        if(hazard_active) {
+            // Make sure hazard lights are off when rain stops
+            hazard_active = false;
+            hazard_timer = 0;
+            tx_buffer1[1] = 0x00;  // Disable both indicators
+            app_can_send(0x305, tx_buffer1, 2);
+        }
     }
 }
-
 static void rain_sensor_iteration(void) {
 
     rain_temp = app_gpio_get_pin_state(RAIN1_SENSE);
