@@ -165,7 +165,7 @@ void handle_rain() {
         hazard_active = true;
         hazard_timer++;  // Increment every 100ms iteration
 
-        if(hazard_timer >= 3) {
+        if(hazard_timer >= 10) {
             hazard_timer = 0;
             hazard_on = !hazard_on;  // Toggle hazard state every 300ms
             
