@@ -18,11 +18,13 @@
 static uint32_t current_time;
 static uint32_t last_trigger_time;
 static bool trigger_state;
-
 static bool echo_captured = true;
 static uint32_t echo_start = 0;
 static uint32_t echo_end = 0;
 static uint32_t measured_distance_cm = 0;
+static uint32_t prev_distance_cm = (uint32_t)-1;
+static const uint32_t pothole_threshold_cm =
+    10; // Adjust this based on sensitivity
 
 volatile bool button_pressed = false;
 
@@ -39,6 +41,7 @@ bool raining = false;
 extern volatile uint8_t indicator_state;
 
 uint8_t tx_buffer1[8] = {0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA};
+uint8_t tx_buffer2[8] = {0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA};
 
 /* Interrupt callback function for GPIO */
 static void gpio_callback(asdk_mcu_pin_t mcu_pin, uint32_t pin_state) {
@@ -228,11 +231,25 @@ static void ultrasonic_sensor_iteration(void) {
         echo_end = asdk_sys_get_time_ms();
         uint32_t duration_ms = echo_end - echo_start;
 
-        // Convert time to distance: distance = (duration * speed_of_sound)/2
-        // Speed of sound = 34300 cm/s → 34.3 cm/ms
-        measured_distance_cm =
-            (duration_ms * 34300) / (2 * 1000); // result in cm
+        // Convert to cm
+        measured_distance_cm = (duration_ms * 34300) / (2 * 1000); // cm
 
+        // Pothole detection
+        if (prev_distance_cm != (uint32_t)-1) {
+            uint32_t diff = (measured_distance_cm > prev_distance_cm)
+                                ? (measured_distance_cm - prev_distance_cm)
+                                : (prev_distance_cm - measured_distance_cm);
+
+            if (diff >= pothole_threshold_cm) {
+                tx_buffer2[0] = 0x02;
+                tx_buffer2[1] = 0x01;
+                app_can_send(0x305, tx_buffer2, 2);
+                tx_buffer2[1] = 0x00;
+                app_can_send(0x305, tx_buffer2, 2);
+            }
+        }
+
+        prev_distance_cm = measured_distance_cm;
         echo_captured = true;
     }
 }
